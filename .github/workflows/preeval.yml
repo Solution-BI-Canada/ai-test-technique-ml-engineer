@@ -114,6 +114,8 @@ jobs:
 
       - name: Lancer la suite de tests
         shell: bash
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: |
           set -o pipefail
           pytest tests \
