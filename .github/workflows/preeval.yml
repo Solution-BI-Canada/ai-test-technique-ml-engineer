@@ -111,21 +111,23 @@ jobs:
         shell: bash
         run: |
           ruff check src tests --output-format=github | tee ruff-report.txt || true
-
-      - name: Lancer la suite de tests
-        shell: bash
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-        run: |
-          set -o pipefail
-          pytest tests \
-            --maxfail=10 \
-            --disable-warnings \
-            --cov=src \
-            --cov-report=term \
-            --cov-report=xml \
-            -v | tee pytest-report.txt
-
+       - name: Lancer la suite de tests
+         shell: bash
+         run: |
+           set -o pipefail
+           echo "Workspace: $GITHUB_WORKSPACE"
+           ls -la
+           ls -la src
+           export PYTHONPATH="$GITHUB_WORKSPACE:$PYTHONPATH"
+           python -c "import sys; print(sys.path); import src; print('src import OK')"
+           python -m pytest tests \
+             --maxfail=10 \
+             --disable-warnings \
+             --cov=src \
+             --cov-report=term \
+             --cov-report=xml \
+             -v | tee pytest-report.txt
+      
       - name: Récap dans le summary
         if: always()
         shell: bash
