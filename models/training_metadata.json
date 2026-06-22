@@ -1,0 +1,140 @@
+{
+  "trained_at_utc": "2026-06-22T03:52:29.698476+00:00",
+  "target_column": "stockout_next_3d",
+  "selection_metric": "f1_score",
+  "best_model": "logistic_regression",
+  "train_path": "C:\\Users\\felix\\stockout-prediction\\data\\processed\\train_preprocessed.csv",
+  "test_path": "C:\\Users\\felix\\stockout-prediction\\data\\processed\\test_preprocessed.csv",
+  "n_train_rows": 29200,
+  "n_test_rows": 7300,
+  "n_features": 34,
+  "feature_columns": [
+    "sales_qty",
+    "stock_level",
+    "promotion_flag",
+    "temperature",
+    "day_of_week",
+    "sku_id_SKU_001",
+    "sku_id_SKU_002",
+    "sku_id_SKU_003",
+    "sku_id_SKU_004",
+    "sku_id_SKU_005",
+    "sku_id_SKU_006",
+    "sku_id_SKU_007",
+    "sku_id_SKU_008",
+    "sku_id_SKU_009",
+    "sku_id_SKU_010",
+    "sku_id_SKU_011",
+    "sku_id_SKU_012",
+    "sku_id_SKU_013",
+    "sku_id_SKU_014",
+    "sku_id_SKU_015",
+    "sku_id_SKU_016",
+    "sku_id_SKU_017",
+    "sku_id_SKU_018",
+    "sku_id_SKU_019",
+    "sku_id_SKU_020",
+    "store_id_STORE_1",
+    "store_id_STORE_2",
+    "store_id_STORE_3",
+    "store_id_STORE_4",
+    "store_id_STORE_5",
+    "year",
+    "month",
+    "day",
+    "day_of_year"
+  ],
+  "train_target_distribution": {
+    "0": 25027,
+    "1": 4173
+  },
+  "test_target_distribution": {
+    "0": 6248,
+    "1": 1052
+  },
+  "model_configs": [
+    "logistic_regression",
+    "logistic_regression_balanced",
+    "random_forest",
+    "random_forest_balanced"
+  ],
+  "metrics": {
+    "logistic_regression": {
+      "accuracy": 0.9909589041095891,
+      "precision": 0.9920159680638723,
+      "recall": 0.9448669201520913,
+      "f1_score": 0.9678675754625121,
+      "confusion_matrix": [
+        [
+          6240,
+          8
+        ],
+        [
+          58,
+          994
+        ]
+      ],
+      "roc_auc": 0.997492733796488,
+      "pr_auc": 0.9883946944012592
+    },
+    "logistic_regression_balanced": {
+      "accuracy": 0.9475342465753425,
+      "precision": 0.7357293868921776,
+      "recall": 0.9923954372623575,
+      "f1_score": 0.8450020234722785,
+      "confusion_matrix": [
+        [
+          5873,
+          375
+        ],
+        [
+          8,
+          1044
+        ]
+      ],
+      "roc_auc": 0.9980031632936228,
+      "pr_auc": 0.9904288706902235
+    },
+    "random_forest": {
+      "accuracy": 0.9906849315068493,
+      "precision": 0.9833005893909627,
+      "recall": 0.9515209125475285,
+      "f1_score": 0.9671497584541063,
+      "confusion_matrix": [
+        [
+          6231,
+          17
+        ],
+        [
+          51,
+          1001
+        ]
+      ],
+      "roc_auc": 0.9990053851452998,
+      "pr_auc": 0.9947867959318863
+    },
+    "random_forest_balanced": {
+      "accuracy": 0.986986301369863,
+      "precision": 0.9442896935933147,
+      "recall": 0.9667300380228137,
+      "f1_score": 0.9553781117895725,
+      "confusion_matrix": [
+        [
+          6188,
+          60
+        ],
+        [
+          35,
+          1017
+        ]
+      ],
+      "roc_auc": 0.9990568845148319,
+      "pr_auc": 0.9950248036533593
+    }
+  },
+  "library_versions": {
+    "pandas": "3.0.3",
+    "scikit_learn": "1.9.0",
+    "joblib": "1.5.3"
+  }
+}
