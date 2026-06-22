@@ -1,8 +1,8 @@
-\# Prédiction des ruptures de stock
+# Prédiction des ruptures de stock
 
 
 
-**## 1. Problématique d'affaires**
+## 1. Problématique d'affaires
 
 
 
@@ -20,9 +20,9 @@ Le problème est formulé comme une tâche de classification binaire :
 
 
 
-* **1** : une rupture de stock surviendra dans les trois prochains jours ;
+* 1 : une rupture de stock surviendra dans les trois prochains jours ;
 
-* **0** : aucune rupture de stock n'est attendue dans cet horizon.
+* 0 : aucune rupture de stock n'est attendue dans cet horizon.
 
 
 
@@ -66,7 +66,7 @@ Dans ce contexte, l'objectif du projet est de construire un pipeline complet de 
 
 
 
-**## 2. Présentation du jeu de données**
+## 2. Présentation du jeu de données
 
 
 
@@ -92,7 +92,7 @@ Le nombre théorique d'observations est donc :
 
 
 
-**20 × 5 × 365 = 36 500 lignes**
+20 × 5 × 365 = 36 500 lignes
 
 
 
@@ -110,51 +110,51 @@ Les variables disponibles sont les suivantes :
 
 | date             | Date d'observation                |
 
-| sku\_id           | Identifiant du produit            |
+| sku_id           | Identifiant du produit            |
 
-| store\_id         | Identifiant du magasin            |
+| store_id         | Identifiant du magasin            |
 
-| sales\_qty        | Quantité vendue durant la journée |
+| sales_qty        | Quantité vendue durant la journée |
 
-| stock\_level      | Niveau de stock en fin de journée |
+| stock_level      | Niveau de stock en fin de journée |
 
-| promotion\_flag   | Indicateur de promotion (0/1)     |
+| promotion_flag   | Indicateur de promotion (0/1)     |
 
 | temperature      | Température extérieure            |
 
-| day\_of\_week      | Jour de la semaine (0 = lundi)    |
+| day_of_week      | Jour de la semaine (0 = lundi)    |
 
-| stock\_risk\_score | Score de risque de rupture        |
+| stock_risk_score | Score de risque de rupture        |
 
-| stockout\_next\_3d | Variable cible                    |
-
-
-
-Les variables `sku\_id` et `store\_id` sont des variables catégorielles. Leur stratégie d'encodage sera déterminée lors de l'étape de prétraitement.
+| stockout_next_3d | Variable cible                    |
 
 
 
-La variable `stock\_risk\_score` semble représenter un indicateur synthétique du risque de rupture. Son utilisation éventuelle sera analysée plus en détail lors de l'étude du risque de **data leakage**.
+Les variables `sku_id` et `store_id` sont des variables catégorielles. Leur stratégie d'encodage sera déterminée lors de l'étape de prétraitement.
 
 
 
-La variable cible `stockout\_next\_3d` indique si une rupture de stock surviendra dans les trois prochains jours :
+La variable `stock_risk_score` semble représenter un indicateur synthétique du risque de rupture. Son utilisation éventuelle sera analysée plus en détail lors de l'étude du risque de data leakage.
 
 
 
-* **1** : une rupture de stock est attendue dans les trois prochains jours ;
-
-* **0** : aucune rupture de stock n'est attendue dans cet horizon.
+La variable cible `stockout_next_3d` indique si une rupture de stock surviendra dans les trois prochains jours :
 
 
 
-Le problème est donc formulé comme une tâche de **classification binaire** visant à prédire le risque de rupture de stock à court terme à partir des informations disponibles au moment de l'observation.
+* 1 : une rupture de stock est attendue dans les trois prochains jours ;
+
+* 0 : aucune rupture de stock n'est attendue dans cet horizon.
+
+
+
+Le problème est donc formulé comme une tâche de classification binaire visant à prédire le risque de rupture de stock à court terme à partir des informations disponibles au moment de l'observation.
 
 
 
 
 
-**## 3. Analyse exploratoire des données (EDA)**
+## 3. Analyse exploratoire des données (EDA)
 
 
 
@@ -168,7 +168,7 @@ Les observations présentées dans les sections suivantes sont basées sur les r
 
 
 
-**### 3.1 Contenu du jeu de données**
+### 3.1 Contenu du jeu de données
 
 
 
@@ -176,11 +176,11 @@ Que contient le dataset ?
 
 
 
-\#### Observations
+#### Observations
 
 
 
-Le dataset contient **36 500 observations** et **10 variables**.
+Le dataset contient 36 500 observations et 10 variables.
 
 
 
@@ -200,7 +200,7 @@ Le nombre théorique d'observations est donc :
 
 
 
-**20 × 5 × 365 = 36 500 lignes**
+20 × 5 × 365 = 36 500 lignes
 
 
 
@@ -210,19 +210,19 @@ Les variables se répartissent en plusieurs catégories :
 
 * variable temporelle : `date` ;
 
-* variables catégorielles : `sku\_id`, `store\_id` ;
+* variables catégorielles : `sku_id`, `store_id` ;
 
-* variable ordinale : `day\_of\_week` ;
+* variable ordinale : `day_of_week` ;
 
-* variables numériques : `sales\_qty`, `stock\_level`, `temperature`, `stock\_risk\_score` ;
+* variables numériques : `sales_qty`, `stock_level`, `temperature`, `stock_risk_score` ;
 
-* variable cible : `stockout\_next\_3d`.
+* variable cible : `stockout_next_3d`.
 
-* variable binaire : `promotion\_flag`.
+* variable binaire : `promotion_flag`.
 
 
 
-Les colonnes `sales\_qty` et `temperature` contiennent déjà des valeurs manquantes qui seront analysées plus en détail dans une section dédiée.
+Les colonnes `sales_qty` et `temperature` contiennent déjà des valeurs manquantes qui seront analysées plus en détail dans une section dédiée.
 
 
 
@@ -230,7 +230,7 @@ La colonne `date` est actuellement stockée au format texte (`string`). Sa conve
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
@@ -242,7 +242,7 @@ La colonne `date` est actuellement stockée au format texte (`string`). Sa conve
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -254,7 +254,7 @@ Cette première étape vise principalement à comprendre la structure générale
 
 
 
-**### 3.2 Cohérence de la structure des données**
+### 3.2 Cohérence de la structure des données
 
 
 
@@ -262,7 +262,7 @@ Cette première étape vise principalement à comprendre la structure générale
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -270,7 +270,7 @@ La cohérence structurelle du dataset a été vérifiée à partir de la clé m�
 
 
 
-`date + sku\_id + store\_id`
+`date + sku_id + store_id`
 
 
 
@@ -298,7 +298,7 @@ Le nombre théorique d'observations attendu est :
 
 
 
-**365 × 20 × 5 = 36 500 lignes**
+365 × 20 × 5 = 36 500 lignes
 
 
 
@@ -310,19 +310,19 @@ De plus, le nombre de combinaisons uniques de la clé métier est également ég
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
 * Conserver l'ensemble des observations ;
 
-* Utiliser `date + sku\_id + store\_id` comme clé métier de référence pour les contrôles de qualité de données ;
+* Utiliser `date + sku_id + store_id` comme clé métier de référence pour les contrôles de qualité de données ;
 
 * Ne supprimer aucune ligne, aucun doublon n'ayant été identifié.
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -338,13 +338,13 @@ L'absence de doublons et la cohérence entre le nombre théorique et le nombre r
 
 
 
-**### 3.3 Valeurs manquantes**
+### 3.3 Valeurs manquantes
 
 
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -356,7 +356,7 @@ L'analyse des valeurs manquantes révèle la présence de données absentes dans
 
 |-----------|------------------:|------------:|
 
-| sales\_qty | 1 825 | 5,0 % |
+| sales_qty | 1 825 | 5,0 % |
 
 | temperature | 1 825 | 5,0 % |
 
@@ -368,11 +368,11 @@ Aucune valeur manquante n'a été détectée dans les colonnes critiques :
 
 * `date`
 
-* `sku\_id`
+* `sku_id`
 
-* `store\_id`
+* `store_id`
 
-* `stockout\_next\_3d`
+* `stockout_next_3d`
 
 
 
@@ -384,11 +384,11 @@ L'analyse par date ne montre pas de concentration complète des valeurs manquant
 
 
 
-Par ailleurs, les variables `sales\_qty` et `temperature` présentent exactement le même nombre de valeurs manquantes. Cette observation suggère que les deux variables pourraient être affectées par un même mécanisme de collecte ou de génération des données. Cette hypothèse sera prise en compte lors des étapes de prétraitement et de modélisation.
+Par ailleurs, les variables `sales_qty` et `temperature` présentent exactement le même nombre de valeurs manquantes. Cette observation suggère que les deux variables pourraient être affectées par un même mécanisme de collecte ou de génération des données. Cette hypothèse sera prise en compte lors des étapes de prétraitement et de modélisation.
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
@@ -402,7 +402,7 @@ Par ailleurs, les variables `sales\_qty` et `temperature` présentent exactement
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -422,7 +422,7 @@ Aucune correction n'est appliquée à ce stade de l'analyse exploratoire. Le cho
 
 
 
-**### 3.4 Valeurs invalides et valeurs aberrantes**
+### 3.4 Valeurs invalides et valeurs aberrantes
 
 
 
@@ -430,7 +430,7 @@ Aucune correction n'est appliquée à ce stade de l'analyse exploratoire. Le cho
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -446,11 +446,11 @@ Les contrôles effectués montrent notamment :
 
 * aucun niveau de stock négatif ;
 
-* aucune valeur invalide dans `promotion\_flag` ;
+* aucune valeur invalide dans `promotion_flag` ;
 
-* aucune valeur invalide dans `stockout\_next\_3d` ;
+* aucune valeur invalide dans `stockout_next_3d` ;
 
-* aucune valeur invalide dans `day\_of\_week`.
+* aucune valeur invalide dans `day_of_week`.
 
 
 
@@ -462,17 +462,17 @@ Une analyse complémentaire des valeurs aberrantes a été réalisée à l'aide 
 
 | ---------------- | ---------------------------: |
 
-| sales\_qty        |                          263 |
+| sales_qty        |                          263 |
 
-| stock\_level      |                            0 |
+| stock_level      |                            0 |
 
 | temperature      |                          241 |
 
-| stock\_risk\_score |                        5 248 |
+| stock_risk_score |                        5 248 |
 
 
 
-Les valeurs extrêmes observées dans `sales\_qty` demeurent plausibles d'un point de vue métier et peuvent correspondre à des pics de demande réels.
+Les valeurs extrêmes observées dans `sales_qty` demeurent plausibles d'un point de vue métier et peuvent correspondre à des pics de demande réels.
 
 
 
@@ -480,25 +480,25 @@ La variable `temperature` présente en revanche plusieurs valeurs très élevée
 
 
 
-La variable `stock\_risk\_score` présente un nombre particulièrement élevé de valeurs identifiées comme aberrantes par la méthode IQR. Cette situation semble davantage liée à la distribution spécifique de la variable qu'à la présence d'erreurs de données et fera l'objet d'une analyse complémentaire dans la section consacrée au risque de fuite de données (data leakage).
+La variable `stock_risk_score` présente un nombre particulièrement élevé de valeurs identifiées comme aberrantes par la méthode IQR. Cette situation semble davantage liée à la distribution spécifique de la variable qu'à la présence d'erreurs de données et fera l'objet d'une analyse complémentaire dans la section consacrée au risque de fuite de données (data leakage).
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
 * Ne supprimer aucune observation à ce stade ;
 
-* Conserver les valeurs extrêmes observées dans `sales\_qty` ;
+* Conserver les valeurs extrêmes observées dans `sales_qty` ;
 
 * Conserver temporairement les valeurs extrêmes de `temperature` en attendant une analyse plus approfondie ;
 
-* Reporter l'analyse détaillée de `stock\_risk\_score` à la section dédiée au data leakage.
+* Reporter l'analyse détaillée de `stock_risk_score` à la section dédiée au data leakage.
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -520,7 +520,7 @@ Toute décision de correction ou d'exclusion sera donc prise uniquement après v
 
 
 
-**### 3.5 Distribution de la variable cible**
+### 3.5 Distribution de la variable cible
 
 
 
@@ -528,11 +528,11 @@ Toute décision de correction ou d'exclusion sera donc prise uniquement après v
 
 
 
-\#### Observations
+#### Observations
 
 
 
-La variable cible `stockout\_next\_3d` est une variable binaire indiquant si une rupture de stock survient dans les trois prochains jours.
+La variable cible `stockout_next_3d` est une variable binaire indiquant si une rupture de stock survient dans les trois prochains jours.
 
 
 
@@ -550,7 +550,7 @@ La distribution observée est la suivante :
 
 
 
-La classe majoritaire représente **85,68 %** du dataset.
+La classe majoritaire représente 85,68 % du dataset.
 
 
 
@@ -558,7 +558,7 @@ Le jeu de données présente un déséquilibre de classes, les situations de rup
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
@@ -570,7 +570,7 @@ Le jeu de données présente un déséquilibre de classes, les situations de rup
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -586,7 +586,7 @@ Le déséquilibre de la cible justifie donc l'utilisation de métriques centrée
 
 
 
-**### 3.6 Patterns et relations entre les variables**
+### 3.6 Patterns et relations entre les variables
 
 
 
@@ -594,7 +594,7 @@ Le déséquilibre de la cible justifie donc l'utilisation de métriques centrée
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -610,33 +610,33 @@ Les corrélations observées avec la variable cible sont les suivantes :
 
 |-----------|-------------------------:|
 
-| sales\_qty | 0,1117 |
+| sales_qty | 0,1117 |
 
-| stock\_level | -0,5478 |
+| stock_level | -0,5478 |
 
 | temperature | -0,0032 |
 
-| stock\_risk\_score | 0,9996 |
+| stock_risk_score | 0,9996 |
 
 
 
-La variable `stock\_level` présente la relation la plus forte parmi les variables explicatives directement liées aux opérations, avec une corrélation de **-0,5478**.
+La variable `stock_level` présente la relation la plus forte parmi les variables explicatives directement liées aux opérations, avec une corrélation de -0,5478.
 
 
 
-Les observations associées à une rupture présentent un niveau de stock moyen de **3,87 unités**, contre **86,86 unités** pour les observations sans rupture. Cette relation est cohérente avec le phénomène métier étudié : plus le niveau de stock est faible, plus le risque de rupture augmente.
+Les observations associées à une rupture présentent un niveau de stock moyen de 3,87 unités, contre 86,86 unités pour les observations sans rupture. Cette relation est cohérente avec le phénomène métier étudié : plus le niveau de stock est faible, plus le risque de rupture augmente.
 
 
 
-La variable `sales\_qty` présente une corrélation positive plus faible (**0,1117**) avec la cible. Les observations associées à une rupture affichent en moyenne un volume de ventes légèrement supérieur à celles ne présentant pas de rupture.
+La variable `sales_qty` présente une corrélation positive plus faible (0,1117) avec la cible. Les observations associées à une rupture affichent en moyenne un volume de ventes légèrement supérieur à celles ne présentant pas de rupture.
 
 
 
-La variable `temperature` présente une corrélation très faible avec la cible (**-0,0032**), ce qui suggère une contribution limitée à la prédiction des ruptures dans ce dataset.
+La variable `temperature` présente une corrélation très faible avec la cible (-0,0032), ce qui suggère une contribution limitée à la prédiction des ruptures dans ce dataset.
 
 
 
-La variable `stock\_risk\_score` présente une corrélation extrêmement élevée avec la variable cible (**0,9996**). Une telle relation apparaît inhabituelle dans un contexte réel et constitue un signal fort nécessitant une analyse spécifique du risque de fuite de données (*data leakage*).
+La variable `stock_risk_score` présente une corrélation extrêmement élevée avec la variable cible (0,9996). Une telle relation apparaît inhabituelle dans un contexte réel et constitue un signal fort nécessitant une analyse spécifique du risque de fuite de données (*data leakage*).
 
 
 
@@ -644,9 +644,9 @@ L'analyse des variables catégorielles met également en évidence plusieurs pat
 
 
 
-* les produits en promotion présentent un taux de rupture de **18,71 %**, contre **13,52 %** pour les produits non promus ;
+* les produits en promotion présentent un taux de rupture de 18,71 %, contre 13,52 % pour les produits non promus ;
 
-* certains produits présentent davantage de ruptures que d'autres, avec des taux variant de **11,89 % à 15,89 %** selon le SKU ;
+* certains produits présentent davantage de ruptures que d'autres, avec des taux variant de 11,89 % à 15,89 % selon le SKU ;
 
 * les différences observées entre magasins demeurent relativement faibles ;
 
@@ -654,21 +654,21 @@ L'analyse des variables catégorielles met également en évidence plusieurs pat
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
 * Conserver provisoirement l'ensemble des variables ;
 
-* Investiguer spécifiquement la variable `stock\_risk\_score` dans la section consacrée au risque de *data leakage* ;
+* Investiguer spécifiquement la variable `stock_risk_score` dans la section consacrée au risque de *data leakage* ;
 
-* Considérer `stock\_level` comme une variable potentiellement très informative pour la modélisation ;
+* Considérer `stock_level` comme une variable potentiellement très informative pour la modélisation ;
 
-* Conserver les variables catégorielles (`promotion\_flag`, `sku\_id`, `store\_id`, `day\_of\_week`) afin de permettre au modèle de capturer d'éventuels comportements spécifiques aux produits ou aux magasins.
+* Conserver les variables catégorielles (`promotion_flag`, `sku_id`, `store_id`, `day_of_week`) afin de permettre au modèle de capturer d'éventuels comportements spécifiques aux produits ou aux magasins.
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -680,7 +680,7 @@ Les résultats obtenus montrent que plusieurs variables présentent des relation
 
 
 
-Toutefois, la corrélation presque parfaite observée pour `stock\_risk\_score` soulève un risque important de fuite de données qui devra être évalué avant toute phase d'entraînement afin d'éviter une surestimation artificielle des performances du modèle.
+Toutefois, la corrélation presque parfaite observée pour `stock_risk_score` soulève un risque important de fuite de données qui devra être évalué avant toute phase d'entraînement afin d'éviter une surestimation artificielle des performances du modèle.
 
 
 
@@ -688,7 +688,7 @@ Toutefois, la corrélation presque parfaite observée pour `stock\_risk\_score` 
 
 
 
-**### 3.7 Cohérence temporelle**
+### 3.7 Cohérence temporelle
 
 
 
@@ -696,7 +696,7 @@ Toutefois, la corrélation presque parfaite observée pour `stock\_risk\_score` 
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -728,7 +728,7 @@ Le dataset couvre donc l'ensemble de la période observée sans interruption.
 
 
 
-Une analyse complémentaire du taux mensuel de rupture a également été réalisée. Les taux observés varient entre **13,29 %** et **15,27 %** selon les mois.
+Une analyse complémentaire du taux mensuel de rupture a également été réalisée. Les taux observés varient entre 13,29 % et 15,27 % selon les mois.
 
 
 
@@ -736,7 +736,7 @@ Ces variations restent relativement limitées et ne mettent pas en évidence de 
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
@@ -748,7 +748,7 @@ Ces variations restent relativement limitées et ne mettent pas en évidence de 
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -768,7 +768,7 @@ Par ailleurs, l'analyse mensuelle du taux de rupture ne révèle aucune anomalie
 
 
 
-**### 3.8 Analyse du risque de fuite de données (Data Leakage)**
+### 3.8 Analyse du risque de fuite de données (Data Leakage)
 
 
 
@@ -776,15 +776,15 @@ Par ailleurs, l'analyse mensuelle du taux de rupture ne révèle aucune anomalie
 
 
 
-\#### Observations
+#### Observations
 
 
 
-Une analyse spécifique a été réalisée sur la variable `stock\_risk\_score` en raison de sa corrélation exceptionnellement élevée avec la variable cible.
+Une analyse spécifique a été réalisée sur la variable `stock_risk_score` en raison de sa corrélation exceptionnellement élevée avec la variable cible.
 
 
 
-La corrélation observée entre `stock\_risk\_score` et `stockout\_next\_3d` est de **0,9996**, soit une relation presque parfaite.
+La corrélation observée entre `stock_risk_score` et `stockout_next_3d` est de 0,9996, soit une relation presque parfaite.
 
 
 
@@ -792,7 +792,7 @@ L'analyse des distributions par classe met également en évidence une séparati
 
 
 
-| Classe             | Intervalle observé du stock\_risk\_score |
+| Classe             | Intervalle observé du stock_risk_score |
 
 | ------------------ | -------------------------------------- |
 
@@ -806,15 +806,15 @@ Les valeurs observées pour les deux classes ne présentent pratiquement aucun c
 
 
 
-Cette situation suggère fortement que la variable `stock\_risk\_score` incorpore directement ou indirectement une information liée à la variable cible ou à des événements futurs.
+Cette situation suggère fortement que la variable `stock_risk_score` incorpore directement ou indirectement une information liée à la variable cible ou à des événements futurs.
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
-* Exclure `stock\_risk\_score` du jeu de variables utilisé pour l'entraînement ;
+* Exclure `stock_risk_score` du jeu de variables utilisé pour l'entraînement ;
 
 * Conserver cette variable uniquement à des fins d'analyse exploratoire ;
 
@@ -822,7 +822,7 @@ Cette situation suggère fortement que la variable `stock\_risk\_score` incorpor
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -834,7 +834,7 @@ Lorsqu'une variable contient déjà une information directement liée à la cibl
 
 
 
-Compte tenu de la corrélation observée et de la séparation quasi parfaite des distributions, `stock\_risk\_score` est considéré comme une source potentielle de fuite de données (*data leakage*) et est exclu de la phase de modélisation par mesure de prudence.
+Compte tenu de la corrélation observée et de la séparation quasi parfaite des distributions, `stock_risk_score` est considéré comme une source potentielle de fuite de données (*data leakage*) et est exclu de la phase de modélisation par mesure de prudence.
 
 
 
@@ -844,7 +844,7 @@ Compte tenu de la corrélation observée et de la séparation quasi parfaite des
 
 
 
-**## 4. Prétraitement des données**
+## 4. Prétraitement des données
 
 
 
@@ -856,13 +856,13 @@ L'analyse exploratoire a permis d'identifier plusieurs éléments importants pou
 
 
 
-* présence de valeurs manquantes dans `sales\_qty` et `temperature` ;
+* présence de valeurs manquantes dans `sales_qty` et `temperature` ;
 
 * déséquilibre de la variable cible ;
 
 * présence de variables catégorielles nécessitant un encodage ;
 
-* risque potentiel de data leakage associé à `stock\_risk\_score`.
+* risque potentiel de data leakage associé à `stock_risk_score`.
 
 
 
@@ -872,17 +872,17 @@ Les étapes de prétraitement décrites dans cette section visent à préparer l
 
 
 
-**### 4.1 Suppression des variables à risque de data leakage**
+### 4.1 Suppression des variables à risque de data leakage
 
 
 
 
 
-\#### Observations
+#### Observations
 
 
 
-L'analyse exploratoire a mis en évidence un risque potentiel de fuite de données (*data leakage*) associé à la variable `stock\_risk\_score`.
+L'analyse exploratoire a mis en évidence un risque potentiel de fuite de données (*data leakage*) associé à la variable `stock_risk_score`.
 
 
 
@@ -894,11 +894,11 @@ Son utilisation lors de l'entraînement pourrait conduire à une surestimation a
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
-* Supprimer la variable `stock\_risk\_score` avant toute autre étape de prétraitement ;
+* Supprimer la variable `stock_risk_score` avant toute autre étape de prétraitement ;
 
 * Conserver uniquement les variables disponibles dans un contexte réaliste de prédiction ;
 
@@ -906,7 +906,7 @@ Son utilisation lors de l'entraînement pourrait conduire à une surestimation a
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -918,11 +918,11 @@ L'utilisation d'une variable susceptible de contenir directement ou indirectemen
 
 
 
-Par mesure de prudence, `stock\_risk\_score` est exclue du pipeline de modélisation afin de garantir une évaluation réaliste des performances du modèle sur de nouvelles données.
+Par mesure de prudence, `stock_risk_score` est exclue du pipeline de modélisation afin de garantir une évaluation réaliste des performances du modèle sur de nouvelles données.
 
 
 
-\#### Résultats
+#### Résultats
 
 
 
@@ -946,37 +946,37 @@ Le dataset prétraité a été sauvegardé dans :
 
 ```text
 
-data/processed/stocks\_no\_leakage.csv
+data/processed/stocks_no_leakage.csv
 
 ```
 
 
 
-\#### Test effectué
+#### Test effectué
 
 
 
-**Test ID :** PREP-001
+Test ID : PREP-001
 
 
 
-**Nom :** `test\_stock\_risk\_score\_removed`
+Nom : `test_stock_risk_score_removed`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que la variable identifiée comme source potentielle de data leakage est supprimée avant la modélisation.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
-La colonne `stock\_risk\_score` n'est plus présente dans le dataset traité.
+La colonne `stock_risk_score` n'est plus présente dans le dataset traité.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
@@ -984,7 +984,7 @@ PASS.
 
 
 
-**### 4.2 Traitement des valeurs manquantes**
+### 4.2 Traitement des valeurs manquantes
 
 
 
@@ -992,11 +992,11 @@ PASS.
 
 
 
-\#### Observations
+#### Observations
 
 
 
-Les variables `sales\_qty` et `temperature` contenaient chacune **1 825 valeurs manquantes**, soit **5 %** du dataset.
+Les variables `sales_qty` et `temperature` contenaient chacune 1 825 valeurs manquantes, soit 5 % du dataset.
 
 
 
@@ -1004,11 +1004,11 @@ Aucune valeur manquante n'était présente dans la variable cible ni dans les co
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
-* Imputer `sales\_qty` avec la médiane du SKU correspondant ;
+* Imputer `sales_qty` avec la médiane du SKU correspondant ;
 
 * Utiliser une médiane globale en fallback si nécessaire ;
 
@@ -1018,11 +1018,11 @@ Aucune valeur manquante n'était présente dans la variable cible ni dans les co
 
 
 
-\#### Justification
+#### Justification
 
 
 
-`sales\_qty` dépend fortement du produit vendu. Une imputation par SKU permet de préserver les différences de comportement entre produits tout en restant simple et maintenable.
+`sales_qty` dépend fortement du produit vendu. Une imputation par SKU permet de préserver les différences de comportement entre produits tout en restant simple et maintenable.
 
 
 
@@ -1034,7 +1034,7 @@ La médiane a été privilégiée à la moyenne car elle est plus robuste aux va
 
 
 
-\#### Résultats
+#### Résultats
 
 
 
@@ -1042,13 +1042,13 @@ La médiane a été privilégiée à la moyenne car elle est plus robuste aux va
 
 | ------------- | ---------------: | ---------------: |
 
-| `sales\_qty`   |            1 825 |                0 |
+| `sales_qty`   |            1 825 |                0 |
 
 | `temperature` |            1 825 |                0 |
 
 
 
-La médiane globale utilisée pour `temperature` est **15,10**.
+La médiane globale utilisée pour `temperature` est 15,10.
 
 
 
@@ -1058,51 +1058,51 @@ Le dataset prétraité a été sauvegardé dans :
 
 ```text
 
-data/processed/stocks\_preprocessed.csv
+data/processed/stocks_preprocessed.csv
 
 ```
 
 
 
-\#### Test effectué
+#### Test effectué
 
 
 
-**Test ID :** PREP-002
+Test ID : PREP-002
 
 
 
-**Nom :** `test\_missing\_values\_imputed`
+Nom : `test_missing_values_imputed`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que toutes les valeurs manquantes sont correctement traitées lors du prétraitement.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
-Aucune valeur manquante ne subsiste dans les variables `sales\_qty` et `temperature`.
+Aucune valeur manquante ne subsiste dans les variables `sales_qty` et `temperature`.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
 
 
-**### 4.3 Encodage des variables catégorielles**
+### 4.3 Encodage des variables catégorielles
 
 
 
-\#### Observations
+#### Observations
 
 
 
-Les variables `sku\_id` et `store\_id` sont des variables catégorielles nominales.
+Les variables `sku_id` et `store_id` sont des variables catégorielles nominales.
 
 
 
@@ -1118,19 +1118,19 @@ Le dataset contient :
 
 | -------- | -------------------: |
 
-| sku\_id   |                   20 |
+| sku_id   |                   20 |
 
-| store\_id |                    5 |
-
-
-
-\#### Décisions
+| store_id |                    5 |
 
 
 
-* Utiliser le One-Hot Encoding pour `sku\_id` ;
+#### Décisions
 
-* Utiliser le One-Hot Encoding pour `store\_id` ;
+
+
+* Utiliser le One-Hot Encoding pour `sku_id` ;
+
+* Utiliser le One-Hot Encoding pour `store_id` ;
 
 * Apprendre les catégories uniquement à partir du jeu d'entraînement ;
 
@@ -1138,7 +1138,7 @@ Le dataset contient :
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -1158,7 +1158,7 @@ L'apprentissage des catégories uniquement sur le jeu d'entraînement permet ég
 
 
 
-\#### Résultats
+#### Résultats
 
 
 
@@ -1178,31 +1178,31 @@ L'apprentissage des catégories uniquement sur le jeu d'entraînement permet ég
 
 
 
-\#### Test effectué
+#### Test effectué
 
 
 
-**Test ID : PREP-003**
+Test ID : PREP-003
 
 
 
-**Nom :** `test\_one\_hot\_encoding`
+Nom : `test_one_hot_encoding`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que les variables catégorielles sont correctement encodées et supprimées après transformation.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
-Les colonnes `sku\_id` et `store\_id` n'existent plus après prétraitement.
+Les colonnes `sku_id` et `store_id` n'existent plus après prétraitement.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
@@ -1212,11 +1212,11 @@ PASS.
 
 
 
-**### 4.4 Ingénierie des variables temporelles**
+### 4.4 Ingénierie des variables temporelles
 
 
 
-\#### Observations
+#### Observations
 
 
 
@@ -1228,7 +1228,7 @@ Certaines variations saisonnières ou calendaires peuvent influencer la demande 
 
 
 
-\#### Décisions
+#### Décisions
 
 
 
@@ -1244,7 +1244,7 @@ Certaines variations saisonnières ou calendaires peuvent influencer la demande 
 
 
 
-\#### Justification
+#### Justification
 
 
 
@@ -1260,7 +1260,7 @@ Les variables temporelles sont générées après la séparation train/test afin
 
 
 
-\#### Résultats
+#### Résultats
 
 
 
@@ -1274,7 +1274,7 @@ Variables créées :
 
 * `day`
 
-* `day\_of\_year`
+* `day_of_year`
 
 
 
@@ -1286,31 +1286,31 @@ Variable supprimée :
 
 
 
-\#### Test effectué
+#### Test effectué
 
 
 
-**Test ID : PREP-004**
+Test ID : PREP-004
 
 
 
-**Nom :** `test\_temporal\_feature\_engineering`
+Nom : `test_temporal_feature_engineering`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que les variables temporelles sont correctement créées à partir de la date.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
-Les variables `year`, `month`, `day` et `day\_of\_year` sont présentes et la colonne `date` est supprimée.
+Les variables `year`, `month`, `day` et `day_of_year` sont présentes et la colonne `date` est supprimée.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
@@ -1320,11 +1320,11 @@ PASS.
 
 
 
-**### 4.5 Séparation temporelle Train / Test**
+### 4.5 Séparation temporelle Train / Test
 
 
 
-**#### Observations**
+#### Observations
 
 
 
@@ -1336,7 +1336,7 @@ L'utilisation d'un échantillonnage aléatoire pourrait introduire une fuite d'i
 
 
 
-**#### Décisions**
+#### Décisions
 
 
 
@@ -1352,7 +1352,7 @@ L'utilisation d'un échantillonnage aléatoire pourrait introduire une fuite d'i
 
 
 
-**#### Justification**
+#### Justification
 
 
 
@@ -1364,7 +1364,7 @@ Une séparation temporelle permet de reproduire fidèlement ce scénario et d'ob
 
 
 
-**#### Résultats**
+#### Résultats
 
 
 
@@ -1384,31 +1384,31 @@ Une séparation temporelle permet de reproduire fidèlement ce scénario et d'ob
 
 
 
-**#### Test effectué**
+#### Test effectué
 
 
 
-**Test ID : PREP-005**
+Test ID : PREP-005
 
 
 
-**Nom :** `test\_temporal\_split`
+Nom : `test_temporal_split`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que les données d'entraînement précèdent toujours les données de test.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
 La date maximale du train est strictement inférieure à la date minimale du test.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
@@ -1418,11 +1418,11 @@ PASS.
 
 
 
-**### 4.6 Validation finale et sauvegarde des jeux de données**
+### 4.6 Validation finale et sauvegarde des jeux de données
 
 
 
-**#### Observations**
+#### Observations
 
 
 
@@ -1430,7 +1430,7 @@ Une validation finale a été réalisée afin de garantir l'intégrité des donn
 
 
 
-**#### Décisions**
+#### Décisions
 
 
 
@@ -1448,7 +1448,7 @@ Une validation finale a été réalisée afin de garantir l'intégrité des donn
 
 
 
-**#### Justification**
+#### Justification
 
 
 
@@ -1460,7 +1460,7 @@ Ils garantissent également que les données produites par le pipeline sont dire
 
 
 
-**#### Résultats**
+#### Résultats
 
 
 
@@ -1500,17 +1500,17 @@ Fichiers générés :
 
 ```text
 
-data/processed/train\_preprocessed.csv
+data/processed/train_preprocessed.csv
 
-data/processed/test\_preprocessed.csv
+data/processed/test_preprocessed.csv
 
-data/processed/preprocessing\_params.json
+data/processed/preprocessing_params.json
 
 ```
 
 
 
-**### Artefacts générés durant le prétraitement**
+### Artefacts générés durant le prétraitement
 
 
 
@@ -1518,51 +1518,51 @@ data/processed/preprocessing\_params.json
 
 |----------|-------------|
 
-| `stocks\_no\_leakage.csv` | Dataset après suppression de la variable présentant un risque de fuite de données |
+| `stocks_no_leakage.csv` | Dataset après suppression de la variable présentant un risque de fuite de données |
 
-| `stocks\_preprocessed.csv` | Dataset complet après traitement des valeurs manquantes |
+| `stocks_preprocessed.csv` | Dataset complet après traitement des valeurs manquantes |
 
-| `train\_preprocessed.csv` | Jeu d'entraînement final utilisé pour l'entraînement des modèles |
+| `train_preprocessed.csv` | Jeu d'entraînement final utilisé pour l'entraînement des modèles |
 
-| `test\_preprocessed.csv` | Jeu de test final utilisé pour l'évaluation |
+| `test_preprocessed.csv` | Jeu de test final utilisé pour l'évaluation |
 
-| `preprocessing\_params.json` | Paramètres de prétraitement sauvegardés pour l'inférence |
-
-
+| `preprocessing_params.json` | Paramètres de prétraitement sauvegardés pour l'inférence |
 
 
 
-**#### Test effectué**
+
+
+#### Test effectué
 
 
 
-**Test ID : PREP-006**
+Test ID : PREP-006
 
 
 
-**Nom :** `test\_final\_dataset\_validation`
+Nom : `test_final_dataset_validation`
 
 
 
-**Objectif :**
+Objectif :
 
 Vérifier que les jeux de données sont prêts pour l'entraînement.
 
 
 
-**Résultat attendu :**
+Résultat attendu :
 
 Tous les contrôles de validation sont réussis.
 
 
 
-**Résultat obtenu :**
+Résultat obtenu :
 
 PASS.
 
 
 
-**#### Synthèse**
+#### Synthèse
 
 
 
@@ -1576,11 +1576,11 @@ PASS.
 
 
 
-**## 5. Sélection et entraînement du modèle**
+## 5. Sélection et entraînement du modèle
 
 
 
-**### 5.1 Choix du modèle**
+### 5.1 Choix du modèle
 
 
 
@@ -1594,7 +1594,7 @@ Deux modèles ont été retenus pour comparaison :
 
 
 
-\### Justification du choix des modèles
+### Justification du choix des modèles
 
 
 
@@ -1622,7 +1622,7 @@ Il constitue également une référence classique et robuste pour les problèmes
 
 
 
-\### Modèles considérés mais non retenus
+### Modèles considérés mais non retenus
 
 
 
@@ -1642,7 +1642,7 @@ Le choix a donc été orienté vers des modèles plus simples à comprendre, doc
 
 
 
-**### Adéquation avec le contexte du projet**
+### Adéquation avec le contexte du projet
 
 
 
@@ -1664,7 +1664,7 @@ Le choix a donc été orienté vers des modèles plus simples à comprendre, doc
 
 
 
-**### Critères de comparaison**
+### Critères de comparaison
 
 
 
@@ -1700,11 +1700,11 @@ Le modèle retenu ne sera pas nécessairement celui obtenant la meilleure perfor
 
 
 
-**### 5.2 Gestion du déséquilibre de classes**
+### 5.2 Gestion du déséquilibre de classes
 
 
 
-**### Observations**
+### Observations
 
 
 
@@ -1726,7 +1726,7 @@ Dans ce contexte, un modèle entraîné sans précaution particulière pourrait 
 
 
 
-**### Décisions**
+### Décisions
 
 
 
@@ -1736,7 +1736,7 @@ Afin d'évaluer l'impact du déséquilibre de classes sur les performances, deux
 
 \- Version standard ;
 
-\- Version avec `class\_weight="balanced"` ;
+\- Version avec `class_weight="balanced"` ;
 
 
 
@@ -1746,21 +1746,21 @@ Les modèles évalués sont donc :
 
 \- Logistic Regression ;
 
-\- Logistic Regression (`class\_weight="balanced"`) ;
+\- Logistic Regression (`class_weight="balanced"`) ;
 
 \- Random Forest Classifier ;
 
-\- Random Forest Classifier (`class\_weight="balanced"`).
+\- Random Forest Classifier (`class_weight="balanced"`).
 
 
 
 
 
-**### Justification**
+### Justification
 
 
 
-L'option class\_weight="balanced" ajuste automatiquement les poids associés aux classes en fonction de leur fréquence d'apparition dans les données d'entraînement, afin de réduire le biais potentiel en faveur de la classe majoritaire.
+L'option class_weight="balanced" ajuste automatiquement les poids associés aux classes en fonction de leur fréquence d'apparition dans les données d'entraînement, afin de réduire le biais potentiel en faveur de la classe majoritaire.
 
 
 
@@ -1776,7 +1776,7 @@ L'entraînement des deux variantes permettra de mesurer concrètement l'impact d
 
 
 
-**### Critères de sélection**
+### Critères de sélection
 
 
 
@@ -1818,7 +1818,7 @@ L'objectif principal est de maximiser la capacité du modèle à identifier les 
 
 
 
-**### Modèles à comparer**
+### Modèles à comparer
 
 
 
@@ -1828,11 +1828,11 @@ L'objectif principal est de maximiser la capacité du modèle à identifier les 
 
 | M1 | Logistic Regression                                  |
 
-| M2 | Logistic Regression (`class\_weight="balanced"`)      |
+| M2 | Logistic Regression (`class_weight="balanced"`)      |
 
 | M3 | Random Forest Classifier                             |
 
-| M4 | Random Forest Classifier (`class\_weight="balanced"`) |
+| M4 | Random Forest Classifier (`class_weight="balanced"`) |
 
 
 
@@ -1844,13 +1844,13 @@ Les performances de ces quatre modèles seront comparées dans la section d'éva
 
 
 
-**### 5.3 Résultats de l'entraînement**
+### 5.3 Résultats de l'entraînement
 
 
 
 
 
-**### Résultats obtenus**
+### Résultats obtenus
 
 
 
@@ -1864,19 +1864,19 @@ Les quatre modèles candidats ont été entraînés par training.py, qui s'appui
 
 | Logistic Regression                                  |  99,10 % |   99,20 % | 94,49 % |  96,79 % |  0,9975 |
 
-| Logistic Regression (`class\_weight="balanced"`)      |  94,75 % |   73,57 % | 99,24 % |  84,50 % |  0,9980 |
+| Logistic Regression (`class_weight="balanced"`)      |  94,75 % |   73,57 % | 99,24 % |  84,50 % |  0,9980 |
 
 | Random Forest Classifier                             |  99,07 % |   98,33 % | 95,15 % |  96,71 % |  0,9990 |
 
-| Random Forest Classifier (`class\_weight="balanced"`) |  98,70 % |   94,43 % | 96,67 % |  95,54 % |  0,9991 |
+| Random Forest Classifier (`class_weight="balanced"`) |  98,70 % |   94,43 % | 96,67 % |  95,54 % |  0,9991 |
 
 
 
-**### Analyse des résultats**
+### Analyse des résultats
 
 
 
-L'utilisation de class\_weight="balanced" a permis d'améliorer le Recall de la classe positive, ce qui était attendu compte tenu du déséquilibre observé dans la variable cible.
+L'utilisation de class_weight="balanced" a permis d'améliorer le Recall de la classe positive, ce qui était attendu compte tenu du déséquilibre observé dans la variable cible.
 
 
 
@@ -1896,7 +1896,7 @@ Par exemple :
 
 | Logistic Regression                             |             8 |            58 |
 
-| Logistic Regression (`class\_weight="balanced"`) |           375 |             8 |
+| Logistic Regression (`class_weight="balanced"`) |           375 |             8 |
 
 
 
@@ -1910,11 +1910,11 @@ Dans un contexte opérationnel, chaque fausse alerte peut entraîner des vérifi
 
 
 
-**### Sélection du modèle final**
+### Sélection du modèle final
 
 
 
-Bien que la Logistic Regression avec class\_weight="balanced" obtienne le meilleur Recall (99,24 %), cette amélioration s'accompagne d'une augmentation importante du nombre de faux positifs.
+Bien que la Logistic Regression avec class_weight="balanced" obtienne le meilleur Recall (99,24 %), cette amélioration s'accompagne d'une augmentation importante du nombre de faux positifs.
 
 
 
@@ -1948,7 +1948,7 @@ Lors de l'exécution réalisée dans le cadre de ce projet, la Logistic Regressi
 
 
 
-**### Modèle retenu**
+### Modèle retenu
 
 
 
@@ -1972,7 +1972,7 @@ Lors de l'exécution réalisée dans le cadre de ce projet, la Logistic Regressi
 
 
 
-**## 6. API FastAPI et packaging du modèle**
+## 6. API FastAPI et packaging du modèle
 
 
 
@@ -1984,11 +1984,11 @@ L'API charge au démarrage :
 
 
 
-* le modèle entraîné : `models/best\_model.joblib` ;
+* le modèle entraîné : `models/best_model.joblib` ;
 
-* les paramètres de prétraitement : `data/processed/preprocessing\_params.json` ;
+* les paramètres de prétraitement : `data/processed/preprocessing_params.json` ;
 
-* les métadonnées d'entraînement : `models/training\_metadata.json`.
+* les métadonnées d'entraînement : `models/training_metadata.json`.
 
 
 
@@ -1996,7 +1996,7 @@ Avant chaque prédiction, l'API applique les mêmes transformations que celles u
 
 
 
-**### Endpoints exposés**
+### Endpoints exposés
 
 
 
@@ -2010,7 +2010,7 @@ Avant chaque prédiction, l'API applique les mêmes transformations que celles u
 
 
 
-**### GET /health**
+### GET /health
 
 
 
@@ -2030,7 +2030,7 @@ Réponse obtenue :
 
 
 
-**### POST /predict**
+### POST /predict
 
 
 
@@ -2042,25 +2042,25 @@ Exemple de payload :
 
 {
 
- "instances": \[
+ "instances": [
 
    {
 
      "date": "2024-12-15",
 
-     "sku\_id": "SKU\_001",
+     "sku_id": "SKU_001",
 
-     "store\_id": "STORE\_1",
+     "store_id": "STORE_1",
 
-     "sales\_qty": 25,
+     "sales_qty": 25,
 
-     "stock\_level": 10,
+     "stock_level": 10,
 
-     "promotion\_flag": 0,
+     "promotion_flag": 0,
 
      "temperature": 5.0,
 
-     "day\_of\_week": 6
+     "day_of_week": 6
 
    }
 
@@ -2080,7 +2080,7 @@ Réponse obtenue :
 
 {
 
- "predictions": \[
+ "predictions": [
 
    {
 
@@ -2098,7 +2098,7 @@ Réponse obtenue :
 
 
 
-**### Interprétation**
+### Interprétation
 
 
 
@@ -2110,7 +2110,7 @@ La valeur `probability = 0.9077` indique que le modèle estime ce risque à envi
 
 
 
-**### Validation**
+### Validation
 
 
 
@@ -2134,7 +2134,7 @@ Les endpoints `/health`, `/docs` et `/predict` ont été validés avec succès.
 
 
 
-**## 7. Tests automatisés**
+## 7. Tests automatisés
 
 
 
@@ -2166,7 +2166,7 @@ Les tests couvrent notamment :
 
 
 
-**### Principaux tests unitaires**
+### Principaux tests unitaires
 
 
 
@@ -2174,19 +2174,19 @@ Les tests couvrent notamment :
 
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------- |
 
-| `test\_remove\_leakage\_features\_removes\_stock\_risk\_score`             | Vérifie que la variable `stock\_risk\_score` est supprimée avant l'entraînement afin d'éviter toute fuite de données     | PASS     |
+| `test_remove_leakage_features_removes_stock_risk_score`             | Vérifie que la variable `stock_risk_score` est supprimée avant l'entraînement afin d'éviter toute fuite de données     | PASS     |
 
-| `test\_temporal\_split\_train\_before\_test`                             | Vérifie que les observations du jeu d'entraînement sont strictement antérieures à celles du jeu de test                | PASS     |
+| `test_temporal_split_train_before_test`                             | Vérifie que les observations du jeu d'entraînement sont strictement antérieures à celles du jeu de test                | PASS     |
 
-| `test\_handle\_missing\_values\_uses\_train\_params\_only`                 | Vérifie que les paramètres d'imputation sont appris uniquement sur le jeu d'entraînement puis appliqués au jeu de test | PASS     |
+| `test_handle_missing_values_uses_train_params_only`                 | Vérifie que les paramètres d'imputation sont appris uniquement sur le jeu d'entraînement puis appliqués au jeu de test | PASS     |
 
-| `test\_encode\_categorical\_features\_handles\_unknown\_categories`       | Vérifie la gestion correcte des catégories inconnues lors de l'inférence                                               | PASS     |
+| `test_encode_categorical_features_handles_unknown_categories`       | Vérifie la gestion correcte des catégories inconnues lors de l'inférence                                               | PASS     |
 
-| `test\_engineer\_temporal\_features\_removes\_date\_and\_creates\_features` | Vérifie la création des variables temporelles et la suppression de la colonne `date`                                   | PASS     |
+| `test_engineer_temporal_features_removes_date_and_creates_features` | Vérifie la création des variables temporelles et la suppression de la colonne `date`                                   | PASS     |
 
 
 
-**### Test d'intégration principal**
+### Test d'intégration principal
 
 
 
@@ -2194,11 +2194,11 @@ Les tests couvrent notamment :
 
 | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 
-| `test\_full\_preprocessing\_pipeline\_train\_and\_test\_have\_valid\_schema` | Vérifie l'exécution complète du pipeline de prétraitement ainsi que la cohérence du schéma final produit pour l'entraînement et l'inférence | PASS     |
+| `test_full_preprocessing_pipeline_train_and_test_have_valid_schema` | Vérifie l'exécution complète du pipeline de prétraitement ainsi que la cohérence du schéma final produit pour l'entraînement et l'inférence | PASS     |
 
 
 
-**### Exécution des tests**
+### Exécution des tests
 
 
 
@@ -2214,7 +2214,7 @@ python -m pytest
 
 
 
-\### Résultat obtenu
+### Résultat obtenu
 
 
 
@@ -2236,9 +2236,9 @@ collected 10 items
 
 
 
-tests/test\_pipeline.py ......                                  \[60%]
+tests/test_pipeline.py ......                                  [60%]
 
-tests/test\_preprocessing.py ....                               \[100%]
+tests/test_preprocessing.py ....                               [100%]
 
 
 
@@ -2248,7 +2248,7 @@ tests/test\_preprocessing.py ....                               \[100%]
 
 
 
-**### Justification**
+### Justification
 
 
 
@@ -2272,7 +2272,7 @@ Cette approche contribue à améliorer la robustesse du pipeline, à faciliter s
 
 
 
-**## 8. Docker**
+## 8. Docker
 
 
 
@@ -2284,7 +2284,7 @@ La conteneurisation permet d'encapsuler l'ensemble des dépendances nécessaires
 
 
 
-**### Construction de l'image**
+### Construction de l'image
 
 
 
@@ -2296,7 +2296,7 @@ docker build -t stockout-api:test .
 
 
 
-\### Exécution du conteneur
+### Exécution du conteneur
 
 
 
@@ -2332,7 +2332,7 @@ http://localhost:8000/docs
 
 
 
-**### Validation du conteneur**
+### Validation du conteneur
 
 
 
@@ -2356,7 +2356,7 @@ Les vérifications suivantes ont été réalisées avec succès dans l'environne
 
 
 
-**### Exemple de réponse**
+### Exemple de réponse
 
 
 
@@ -2364,7 +2364,7 @@ Les vérifications suivantes ont été réalisées avec succès dans l'environne
 
 {
 
- "predictions": \[
+ "predictions": [
 
    {
 
@@ -2382,7 +2382,7 @@ Les vérifications suivantes ont été réalisées avec succès dans l'environne
 
 
 
-**### Résultat**
+### Résultat
 
 
 
@@ -2404,7 +2404,7 @@ La solution est ainsi prête à être déployée sur une infrastructure cloud ou
 
 
 
-**## 9. Structure du projet**
+## 9. Structure du projet
 
 
 
@@ -2432,17 +2432,17 @@ stockout-prediction/
 
 ├── models/
 
-│   ├── best\_model.joblib
+│   ├── best_model.joblib
 
-│   ├── logistic\_regression.joblib
+│   ├── logistic_regression.joblib
 
-│   ├── logistic\_regression\_balanced.joblib
+│   ├── logistic_regression_balanced.joblib
 
-│   ├── random\_forest.joblib
+│   ├── random_forest.joblib
 
-│   ├── random\_forest\_balanced.joblib
+│   ├── random_forest_balanced.joblib
 
-│   └── training\_metadata.json
+│   └── training_metadata.json
 
 │
 
@@ -2464,15 +2464,15 @@ stockout-prediction/
 
 │   ├── training.py              # Entraînement et sélection du modèle
 
-│   └── \_\_init\_\_.py
+│   └── __init__.py
 
 │
 
 ├── tests/
 
-│   ├── test\_preprocessing.py
+│   ├── test_preprocessing.py
 
-│   └── test\_pipeline.py
+│   └── test_pipeline.py
 
 │
 
@@ -2494,7 +2494,7 @@ stockout-prediction/
 
 
 
-**### Description des principaux composants**
+### Description des principaux composants
 
 
 
@@ -2508,7 +2508,7 @@ stockout-prediction/
 
 | `data/processed/`      | Contient les jeux de données prétraités ainsi que les paramètres de prétraitement sauvegardés pour l'inférence      |
 
-| `models/`              | Contient les modèles candidats évalués durant l'entraînement ainsi que le modèle final retenu (`best\_model.joblib`) |
+| `models/`              | Contient les modèles candidats évalués durant l'entraînement ainsi que le modèle final retenu (`best_model.joblib`) |
 
 | `src/eda.py`           | Réalise l'analyse exploratoire des données et documente les décisions prises                                        |
 
@@ -2546,7 +2546,7 @@ Enfin, cette organisation permet de reproduire l'ensemble du pipeline de manièr
 
 
 
-**## 10. Installation**
+## 10. Installation
 
 
 
@@ -2554,7 +2554,7 @@ Enfin, cette organisation permet de reproduire l'ensemble du pipeline de manièr
 
 
 
-**### Prérequis**
+### Prérequis
 
 
 
@@ -2570,7 +2570,7 @@ Les outils suivants doivent être installés sur la machine :
 
 
 
-**### Cloner le dépôt**
+### Cloner le dépôt
 
 
 
@@ -2584,11 +2584,11 @@ cd stockout-prediction
 
 
 
-**### Créer un environnement virtuel**
+### Créer un environnement virtuel
 
 
 
-\#### Windows
+#### Windows
 
 
 
@@ -2602,7 +2602,7 @@ python -m venv .venv
 
 
 
-\#### Linux / macOS
+#### Linux / macOS
 
 
 
@@ -2616,7 +2616,7 @@ source .venv/bin/activate
 
 
 
-**### Installer les dépendances**
+### Installer les dépendances
 
 
 
@@ -2630,7 +2630,7 @@ pip install -r requirements.txt
 
 
 
-**### Vérification de l'installation**
+### Vérification de l'installation
 
 
 
@@ -2658,7 +2658,7 @@ Résultat attendu :
 
 
 
-**### Validation de l'environnement**
+### Validation de l'environnement
 
 
 
@@ -2684,7 +2684,7 @@ L'ensemble du pipeline peut alors être reproduit localement ou exécuté dans u
 
 
 
-**## 11. Exécution du projet**
+## 11. Exécution du projet
 
 
 
@@ -2696,7 +2696,7 @@ Cette approche a été retenue afin de privilégier la simplicité opérationnel
 
 
 
-**### Vue d'ensemble du pipeline**
+### Vue d'ensemble du pipeline
 
 
 
@@ -2730,7 +2730,7 @@ Project Validation
 
 
 
-**### 1. Analyse exploratoire des données**
+### 1. Analyse exploratoire des données
 
 
 
@@ -2760,7 +2760,7 @@ Cette étape permet de :
 
 
 
-**Artefact produit :**
+Artefact produit :
 
 
 
@@ -2772,7 +2772,7 @@ Cette étape permet de :
 
 
 
-**### 2. Prétraitement des données**
+### 2. Prétraitement des données
 
 
 
@@ -2802,17 +2802,17 @@ Cette étape applique l'ensemble des transformations nécessaires avant l'entra�
 
 
 
-**Artefacts produits :**
+Artefacts produits :
 
 
 
 ```text
 
-data/processed/train\_preprocessed.csv
+data/processed/train_preprocessed.csv
 
-data/processed/test\_preprocessed.csv
+data/processed/test_preprocessed.csv
 
-data/processed/preprocessing\_params.json
+data/processed/preprocessing_params.json
 
 ```
 
@@ -2822,7 +2822,7 @@ data/processed/preprocessing\_params.json
 
 
 
-**### 3. Entraînement des modèles**
+### 3. Entraînement des modèles
 
 
 
@@ -2850,23 +2850,23 @@ Cette étape :
 
 
 
-**Artefacts produits :**
+Artefacts produits :
 
 
 
 ```text
 
-models/best\_model.joblib
+models/best_model.joblib
 
-models/logistic\_regression.joblib
+models/logistic_regression.joblib
 
-models/logistic\_regression\_balanced.joblib
+models/logistic_regression_balanced.joblib
 
-models/random\_forest.joblib
+models/random_forest.joblib
 
-models/random\_forest\_balanced.joblib
+models/random_forest_balanced.joblib
 
-models/training\_metadata.json
+models/training_metadata.json
 
 ```
 
@@ -2874,7 +2874,7 @@ models/training\_metadata.json
 
 
 
-**###** 4. **Évaluation des modèles**
+### 4. Évaluation des modèles
 
 
 
@@ -2912,13 +2912,13 @@ Les résultats d'évaluation sont enregistrés dans :
 
 ```text
 
-models/training\_metadata.json
+models/training_metadata.json
 
 ```
 
 
 
-**### 5. Sélection du modèle final**
+### 5. Sélection du modèle final
 
 
 
@@ -2936,7 +2936,7 @@ Le modèle sélectionné est sauvegardé dans :
 
 ```text
 
-models/best\_model.joblib
+models/best_model.joblib
 
 ```
 
@@ -2948,7 +2948,7 @@ Les métadonnées de sélection ainsi que l'ensemble des métriques sont conserv
 
 ```text
 
-models/training\_metadata.json
+models/training_metadata.json
 
 ```
 
@@ -2956,7 +2956,7 @@ models/training\_metadata.json
 
 
 
-**### 6. Lancement de l'API FastAPI**
+### 6. Lancement de l'API FastAPI
 
 
 
@@ -3012,11 +3012,11 @@ Les mêmes transformations que celles utilisées lors de l'entraînement sont ap
 
 
 
-**### 7. Déploiement via Docker**
+### 7. Déploiement via Docker
 
 
 
-\#### Construction de l'image
+#### Construction de l'image
 
 
 
@@ -3028,7 +3028,7 @@ docker build -t stockout-api:test .
 
 
 
-\#### Exécution du conteneur
+#### Exécution du conteneur
 
 
 
@@ -3056,7 +3056,7 @@ http://localhost:8000
 
 
 
-**### 8. Vérification du projet**
+### 8. Vérification du projet
 
 
 
@@ -3152,11 +3152,11 @@ Cette étape permet de valider rapidement l'intégrité globale du projet avant 
 
 
 
-**### Vérification du service**
+### Vérification du service
 
 
 
-\#### Endpoint de santé
+#### Endpoint de santé
 
 
 
@@ -3184,7 +3184,7 @@ Réponse attendue :
 
 
 
-\#### Endpoint de prédiction
+#### Endpoint de prédiction
 
 
 
@@ -3210,7 +3210,7 @@ Ce service permet de soumettre une ou plusieurs observations et de récupérer :
 
 
 
-**### Justification de l'approche retenue**
+### Justification de l'approche retenue
 
 
 
@@ -3246,7 +3246,7 @@ Dans un contexte de production à plus grande échelle, cette architecture pourr
 
 
 
-**## 12. Architecture Cloud**
+## 12. Architecture Cloud
 
 
 
@@ -3279,7 +3279,7 @@ flowchart TD
 ```
 
 
-**### Composants principaux**
+### Composants principaux
 
 
 
@@ -3303,7 +3303,7 @@ flowchart TD
 
 
 
-**### Flux de déploiement**
+### Flux de déploiement
 
 
 
@@ -3325,7 +3325,7 @@ flowchart TD
 
 
 
-**### Stratégie de réentraînement**
+### Stratégie de réentraînement
 
 
 
@@ -3341,7 +3341,7 @@ Cette stratégie permet de conserver une approche compréhensible et maintenable
 
 
 
-**### Justification de l'architecture**
+### Justification de l'architecture
 
 
 
@@ -3375,7 +3375,7 @@ L'architecture reste volontairement simple afin de conserver une solution réali
 
 
 
-**### Évolutions possibles**
+### Évolutions possibles
 
 
 
@@ -3407,7 +3407,7 @@ Ces composants n'ont pas été retenus dans la version actuelle afin de limiter 
 
 
 
-**## Conclusion**
+## Conclusion
 
 
 
