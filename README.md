@@ -3263,35 +3263,20 @@ L'objectif n'est pas de proposer une architecture complexe, mais une solution ro
 **### Architecture cible proposée**
 
 
-
 ```mermaid
-
 flowchart TD
-
-&#x20;   A\[Dataset CSV / nouvelles données] --> B\[Amazon S3]
-
-&#x20;   B --> C\[Job de prétraitement et entraînement]
-
-&#x20;   C --> E\[Versioned Model Artifacts]
-
-&#x20;   E --> F\[Image Docker FastAPI]
-
-&#x20;   F --> G\[Amazon ECR]
-
-&#x20;   G --> H\[AWS ECS Fargate]
-
-&#x20;   H --> I\[API Gateway]
-
-&#x20;   I --> J\[Client / système métier]
-
-&#x20;   H --> K\[Amazon CloudWatch]
-
-&#x20;   K --> L\[Logs et monitoring]
-
-&#x20;   E --> M\[Réentraînement manuel ou planifié]
-
-&#x20;   M --> C
-
+    A[Dataset CSV / nouvelles données] --> B[Amazon S3]
+    B --> C[Job de prétraitement et entraînement]
+    C --> E[Versioned Model Artifacts]
+    E --> F[Image Docker FastAPI]
+    F --> G[Amazon ECR]
+    G --> H[AWS ECS Fargate]
+    H --> I[API Gateway]
+    I --> J[Client / système métier]
+    H --> K[Amazon CloudWatch]
+    K --> L[Logs et monitoring]
+    E --> M[Réentraînement manuel ou planifié]
+    M --> C
 ```
 
 
