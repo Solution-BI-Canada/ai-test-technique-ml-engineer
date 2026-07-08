@@ -176,28 +176,45 @@ Bonne chance.
 
 ---
 ---
-
+---
 ---
 
 # Réponse au test technique
 
 ## Présentation
 
-Cette proposition répond au test technique ML / MLOps Engineer de SBI.
+Cette proposition répond au test technique ML / MLOps Engineer de SBI. L'objectif n'était pas uniquement d'obtenir le meilleur score de prédiction, mais de construire une solution reproductible, robuste et maintenable par une équipe ayant une faible maturité en Machine Learning.
 
-L'objectif n'était pas uniquement d'obtenir le meilleur score de prédiction, mais de construire une solution reproductible, robuste et facilement maintenable par une équipe ayant une faible maturité en Machine Learning.
+Démarche suivie : EDA → détection et traitement des anomalies → preprocessing incluant feature engineering justifié par les résultats de l'EDA → comparaison de 2 modèles → sélection argumentée du modèle adéquat → industrialisation (API, tests, Docker) → architecture cloud cible.
 
-Le projet a été développé selon une démarche proche d'un projet industriel :
+---
 
-1. Analyse exploratoire des données
-2. Détection et traitement des anomalies
-3. Feature Engineering
-4. Comparaison de plusieurs modèles
-5. Sélection du modèle le plus pertinent
-6. Industrialisation du pipeline
-7. Exposition du modèle via une API REST
-8. Containerisation Docker
-9. Tests unitaires
+## Hypothèses
+
+- une observation correspond à l'état d'un SKU dans un magasin à une date donnée ;
+- aucune information future n'est disponible au moment de la prédiction ;
+- les variables disponibles sont les seules utilisables en production ;
+- la cible `stockout_next_3d` est considérée comme correctement construite.
+
+### Dataset
+
+Un dataset CSV fictif (`stocks.csv`) est fourni :
+
+- **~36 500 lignes** couvrant **365 jours** (année 2024)
+- **20 SKUs × 5 magasins**
+
+| Colonne | Description |
+|---|---|
+| `date` | Date d'observation |
+| `sku_id` | Identifiant du produit |
+| `store_id` | Identifiant du magasin |
+| `sales_qty` | Quantité vendue ce jour-là |
+| `stock_level` | Niveau de stock en fin de journée |
+| `promotion_flag` | Indicateur de promotion (0/1) |
+| `temperature` | Température extérieure (°C) |
+| `day_of_week` | Jour de la semaine (0 = lundi) |
+| `stockout_next_3d` | **Variable cible** : 1 si rupture dans les 3 prochains jours, 0 sinon |
+| `stock_risk_score` | Score de risque de rupture |
 
 ---
 
@@ -221,134 +238,148 @@ Le projet a été développé selon une démarche proche d'un projet industriel 
 ├── notebooks/
 │   └── exploratory_data_analysis.ipynb
 │
-├── models/
-│   └── stockout_model.joblib
-│
 ├── Dockerfile
 ├── Makefile
+├── pytest.ini
 ├── requirements.txt
 └── README.md
 ```
 
----
-
-# Décisions d'ingénierie
-
-Les principaux choix techniques sont les suivants :
-
-- séparation claire entre exploration, entraînement, inférence et API ;
-- pipeline de preprocessing réutilisable entre l'entraînement et l'inférence ;
-- suppression de toute fuite d'information (`stock_risk_score`) ;
-- split chronologique afin d'éviter toute fuite temporelle ;
-- modèle sérialisé avec Joblib ;
-- API REST développée avec FastAPI ;
-- containerisation avec Docker afin de garantir la reproductibilité ;
-- tests unitaires sur les composants critiques.
+Le dossier `models/` n'est **pas versionné** (`.gitignore`) : le modèle est entraîné automatiquement pendant le build Docker (voir section Docker), pour garantir qu'il reste toujours cohérent avec le code source qu'il accompagne.
 
 ---
 
-# Analyse exploratoire (EDA)
+## 1.1 Analyse exploratoire (EDA)
 
-L'analyse complète est disponible dans :
+Analyse complète dans `notebooks/exploratory_data_analysis.ipynb`. Résumé des anomalies identifiées, avec leur ampleur réelle mesurée et leur traitement :
 
-```
-notebooks/exploratory_data_analysis.ipynb
-```
-
-Les principales anomalies identifiées sont :
-
-- valeurs manquantes ;
-- températures hors domaine physique ;
-- présence d'une variable présentant une fuite d'information (`stock_risk_score`) ;
-- variables catégorielles ;
-- déséquilibre des classes ;
-- distributions des variables continues ;
-- corrélations entre variables ;
-- analyse temporelle.
-
-Chaque anomalie identifiée est documentée et justifiée dans le notebook.
+| Anomalie | Ampleur mesurée | Traitement |
+|---|---|---|
+| Valeurs manquantes (`sales_qty`, `temperature`) | 5.0% chacune | Imputation — détail en section *Prétraitement* |
+| `temperature` hors domaine physique [-40, 40] | 0.56% (203 lignes réelles) | Mise à NaN puis imputation |
+| `sales_qty > stock_level` | 25.9% des lignes | Conservé et transformé en feature (`demand_exceeds_stock`) : signal métier majeur, taux de rupture associé de **52.6%** contre **0.9%** sinon (x58) |
+| `stock_risk_score` — fuite de données | Corrélation r = 1.000 (globale), r = 0.9996 par magasin pris séparément, 100% de concordance par simple seuillage | **Exclusion définitive**, implémentée dans le code (`DROPPED_COLUMNS` de `preprocessing.py`) et non simplement documentée, pour garantir qu'elle ne soit jamais réintroduite accidentellement |
+| Déséquilibre de classes | 14.32% de ruptures (5 225 / 36 500) | Split chronologique + métriques adaptées (Recall/Precision/F1/PR-AUC plutôt qu'accuracy) |
+| Pouvoir prédictif des variables (corrélation point-bisériale) | `stock_level` : -0.548 (p<0.0001) · `sales_qty` : +0.112 (p<0.0001) · `temperature` : -0.003 (p=0.55, non significatif) | `stock_level`/`sales_qty` confirmées comme features fortes ; `temperature` conservée à faible coût malgré l'absence de signal démontré |
+| Multicolinéarité | Aucune corrélation forte entre `stock_level`, `sales_qty`, `temperature`, `promotion_flag` | Aucune action nécessaire |
 
 ---
 
-# Prétraitement
+## Prétraitement & Feature Engineering
 
-Les traitements appliqués sont :
+- Conversion de `date` en datetime.
+- Correction des `temperature` hors domaine physique (NaN puis imputation).
+- Encodage one-hot de `sku_id` / `store_id`.
+- Suppression de `stock_risk_score` (fuite de données confirmée, voir tableau ci-dessus).
 
-- conversion de la colonne `date` ;
-- suppression de la variable présentant une fuite d'information ;
-- remplacement des températures invalides par des valeurs manquantes ;
-- imputation des valeurs manquantes ;
-- création de nouvelles variables métier ;
-- encodage des variables catégorielles.
+**Stratégie d'imputation** : les statistiques sont calculées **uniquement sur le jeu d'entraînement**, puis sauvegardées avec le modèle et réutilisées telles quelles à l'inférence — jamais recalculées sur les nouvelles données. Cela évite toute fuite d'information et garantit un comportement stable même quand une requête `/predict` ne contient qu'une seule observation (une moyenne calculée sur un batch d'une seule ligne contenant un NaN produirait un NaN — ce bug a été identifié en cours de développement, voir §2.3). La statistique retenue dépend de la distribution observée en EDA :
+- **Moyenne** pour `sales_qty` et `temperature` (distributions suffisamment régulières) ;
+- **Médiane** pour `days_of_stock` (distribution fortement asymétrique — quelques valeurs très élevées en cas de faibles ventes couplées à un stock important).
 
-Les variables dérivées ajoutées sont notamment :
+Les variables dérivées ne sont pas arbitraires : elles découlent directement des observations de l'EDA.
 
-- `sales_stock_gap`
-- `days_of_stock`
-
----
-
-# Choix du modèle
-
-Plusieurs modèles ont été envisagés durant la phase d'expérimentation.
-
-Le modèle retenu est :
-
-**Random Forest Classifier**
-
-Ce choix est motivé par :
-
-- de très bonnes performances sur le jeu de données ;
-- une excellente robustesse ;
-- peu de prétraitement nécessaire ;
-- une maintenance simple ;
-- une bonne interprétabilité ;
-- une industrialisation facile.
-
-Dans le contexte présenté, la simplicité de maintenance a été privilégiée par rapport à un gain marginal de performance.
+| Feature | Justification |
+|---|---|
+| **`demand_exceeds_stock`** | L'EDA a montré que lorsque `sales_qty > stock_level`, le taux de rupture passe d'environ 0,9 % à 52,6 %. Cette variable binaire synthétise ce signal très discriminant. |
+| **`sales_stock_gap`** | Deux observations peuvent avoir `sales_qty > stock_level` avec des déficits très différents (1 unité vs 20 unités). Cette variable quantifie l'ampleur du déficit, information que la variable binaire seule ne capture pas. |
+| **`days_of_stock`** | Estime le nombre de jours durant lesquels le stock actuel peut satisfaire la demande au rythme observé (`stock_level / sales_qty`). Directement aligné avec l'horizon métier de 3 jours. |
 
 ---
 
-# Évaluation
+## 1.2 Choix du modèle
 
-Le coût métier d'une rupture de stock étant supérieur au coût d'un faux positif, l'évaluation s'est concentrée sur des métriques adaptées aux jeux de données déséquilibrés :
+Le choix ne s'est pas limité à la performance brute. Il tient compte du contexte : horizon de prédiction de 3 jours, volume modeste (~36 500 observations), délai de 48h, et surtout une **équipe cliente peu mature en Data Science/MLOps** nécessitant une solution explicable et maintenable.
 
-- Recall
-- Precision
-- F1-score
-- PR-AUC
+Deux familles de modèles ont été comparées :
+- **Logistic Regression** : baseline simple, rapide, interprétable ;
+- **Random Forest** : capture les relations non linéaires et interactions entre variables, sans prétraitement complexe.
 
-La PR-AUC est retenue comme métrique principale.
+> Le tableau suivant correspond à la **phase de sélection du modèle**, réalisée avant l'ajout de la feature `demand_exceeds_stock` (ajoutée ensuite, voir §1.3 "Impact du Feature Engineering"). Les chiffres finaux du modèle retenu, avec le pipeline complet, sont donnés en §1.3.
 
-Résultats obtenus :
+| Modèle | Recall | Precision | F1-score | Faux négatifs | Faux positifs |
+|---|---:|---:|---:|---:|---:|
+| Logistic Regression | 0.98 | 0.80 | 0.88 | 17 | 215 |
+| Random Forest | 0.96 | 0.95 | 0.95 | 38 | 39 |
 
-- Accuracy : **97 %**
-- Recall : **99 %**
-- Precision : **82 %**
-- PR-AUC : **0.995**
+### Pourquoi pas la régression logistique ?
+
+Excellente baseline, mais repose sur une relation essentiellement linéaire — or l'EDA a montré des interactions plus complexes (stock, ventes, promotions, variables dérivées) mieux capturées par un modèle à base d'arbres. Surtout, malgré un recall légèrement supérieur, elle génère beaucoup plus de faux positifs (215 vs 39), ce qui en production noierait les équipes sous des alertes injustifiées et éroderait la confiance dans le système.
+
+### Pourquoi Random Forest ?
+
+Meilleur compromis performance / robustesse / simplicité de maintenance :
+- capture nativement les relations non linéaires et interactions ;
+- pas de normalisation ni de prétraitement complexe requis ;
+- peu sensible aux valeurs aberrantes ;
+- API scikit-learn stable et largement connue ;
+- feature importance native, facilitant l'interprétation par une équipe peu experte ;
+- excellentes performances avec beaucoup moins de fausses alertes.
 
 ---
 
-# API REST
+## 1.3 Évaluation du modèle
 
-Deux endpoints sont exposés :
+Le coût métier d'une erreur n'est pas symétrique :
+- **Faux négatif (FN)** : rupture non détectée → perte de ventes, insatisfaction client.
+- **Faux positif (FP)** : fausse alerte → réapprovisionnement ou intervention inutile.
 
-## GET /health
+Le coût d'une rupture étant généralement supérieur à celui d'une fausse alerte, l'objectif est de **maximiser la détection des ruptures tout en gardant un nombre raisonnable de fausses alertes**.
 
-Retourne :
+### Métriques retenues
+
+- **Recall** (prioritaire) : capacité à détecter les ruptures réelles.
+- **Precision** : crédibilité des alertes pour les équipes opérationnelles.
+- **F1-score** : équilibre Recall/Precision.
+- **PR-AUC** : adaptée au déséquilibre de classes, indépendante du seuil.
+
+### Seuil de décision
+
+Le seuil n'est volontairement **pas fixé à 0,5**. La fonction `select_threshold` (`src/evaluation.py`) détermine automatiquement le **plus grand seuil garantissant un Recall minimal de 95 %**, conformément au coût métier plus élevé d'une rupture manquée. Ce seuil est sauvegardé avec le modèle, garantissant un comportement identique entre entraînement, réentraînements futurs et inférence — sans intervention manuelle en cas de changement de modèle ou de données.
+
+> ⚠️ *À compléter : la valeur numérique du seuil finalement retenu n'est pas indiquée dans ce document — à ajouter pour la traçabilité.*
+
+### Résultats finaux (pipeline complet, avec `demand_exceeds_stock`)
+
+| Métrique | Valeur |
+|---|---:|
+| Recall | **0.951** |
+| Precision | **0.983** |
+| F1-score | **0.967** |
+| PR-AUC | **0.9945** |
+| Accuracy | **0.991** |
+
+Matrice de confusion (jeu de test, 6 000 observations) :
+- **812** ruptures correctement détectées ;
+- **42** ruptures non détectées ;
+- **14** fausses alertes ;
+- **5 132** prédictions correctes de non-rupture.
+
+### Impact du Feature Engineering
+
+L'ajout de `demand_exceeds_stock` a réduit les faux positifs de **39 à 14** (≈ -64 %) par rapport au modèle du §1.2, pour seulement **4 faux négatifs supplémentaires** (38 → 42). Arbitrage jugé favorable : le recall cible (≥95%) est conservé, tandis que le volume d'alertes injustifiées baisse fortement — un gain direct pour la confiance des équipes opérationnelles dans le système.
+
+---
+
+## 2.2 API REST
+
+Le modèle est exposé via une API **FastAPI**, séparant la logique métier du modèle de ses consommateurs (application web, ERP, pipeline de données...).
+
+Choix motivé par : documentation OpenAPI/Swagger automatique, validation des entrées via Pydantic, bonnes performances, structure claire et typée.
+
+### `GET /health`
+
+Vérifie que le service est opérationnel et que le modèle a été correctement chargé (véritable *readiness check*, pas un simple 200 systématique) :
 
 ```json
-{
-  "status": "ok"
-}
+{"status": "ok"}
+```
+```json
+{"status": "degraded", "reason": "model_not_loaded"}
 ```
 
----
+### `POST /predict`
 
-## POST /predict
-
-Exemple de requête :
-
+Requête :
 ```json
 {
   "instances": [
@@ -366,134 +397,137 @@ Exemple de requête :
 }
 ```
 
-Exemple de réponse :
-
+Réponse :
 ```json
 {
   "predictions": [
-    {
-      "stockout_prediction": 1,
-      "stockout_probability": 0.9949
-    }
+    {"stockout_prediction": 1, "stockout_probability": 0.9906}
   ]
 }
 ```
 
+Le prétraitement appliqué à l'entraînement est **strictement réutilisé à l'inférence** (mêmes transformations, mêmes statistiques d'imputation), évitant tout écart train/serving.
+
+Documentation interactive : `http://localhost:8000/docs` et `/redoc`.
+
 ---
 
-# Tests unitaires
+## 2.3 Tests unitaires
 
-Les tests couvrent :
+Les tests visent à sécuriser les composants critiques du pipeline, pas à maximiser artificiellement la couverture.
 
-- le pipeline de preprocessing ;
-- le feature engineering ;
-- l'API `/health` ;
-- l'API `/predict`.
+### `tests/test_preprocessing.py`
+- création correcte des variables dérivées ;
+- non-utilisation de `stock_risk_score` ;
+- traitement des `temperature` invalides ;
+- imputation conforme à la stratégie apprise à l'entraînement, y compris sur un **batch d'une seule observation** (scénario ayant révélé un bug réel : une moyenne calculée sur le batch reçu plutôt que sur le train set pouvait produire un NaN si l'observation unique contenait déjà un NaN).
+
+### `tests/test_api.py`
+- disponibilité via `GET /health` ;
+- contrat d'entrée/sortie de `POST /predict` ;
+- prédiction sur une observation unique ;
+- non-régression sur valeur manquante ou invalide.
 
 Exécution :
-
 ```bash
 python -m pytest tests -v
 ```
+`pytest.ini` configure automatiquement le `PYTHONPATH`, sans configuration supplémentaire pour un tiers.
 
 ---
 
-# Docker
+## Docker
 
-Construction de l'image :
+L'application est entièrement containerisée. Le modèle est **entraîné automatiquement lors du build** (`RUN python -m src.training` dans le `Dockerfile`), afin que toute reconstruction de l'image produise un pipeline strictement cohérent avec le code, les dépendances et le prétraitement embarqués — sans dépendance à un artefact externe.
 
 ```bash
 docker build -t stockout-api:test .
-```
-
-Lancement :
-
-```bash
 docker run -p 8000:8000 stockout-api:test
 ```
 
+En production, cette approche serait remplacée par un pipeline CI/CD distinct : entraînement/validation → versionnement de l'artefact (Model Registry) → build de l'image avec un modèle déjà validé → déploiement. Cette séparation facilite les rollbacks et le versionnement.
+
 ---
 
-# Proposition d'architecture Cloud
+## Versionnement
+
+| Élément | Stratégie retenue |
+|---|---|
+| Code source | Git (branche dédiée + commits atomiques) |
+| Dépendances | `requirements.txt` versionné |
+| Modèle | Généré automatiquement par le pipeline d'entraînement (`stockout_model.joblib`) |
+| API | Contrat REST documenté via FastAPI / OpenAPI |
+| Conteneur | Image Docker reconstruisible à partir du dépôt |
+
+Un outil dédié de tracking (MLflow, Azure ML Model Registry) n'a volontairement pas été intégré : nombre limité d'expérimentations (deux modèles comparés), objectif de livrer une solution simple et reproductible en moins de 48h, et l'énoncé insiste davantage sur la robustesse et la documentation que sur une plateforme MLOps complète. En production, un Model Registry serait naturellement ajouté pour tracer les expériences et permettre des rollbacks maîtrisés.
+
+---
+
+## Proposition d'architecture Cloud
 
 ```mermaid
 flowchart LR
-
-A[CSV Dataset]
--->B[Azure Blob Storage]
-
-B
--->C[Pipeline d'entraînement]
-
-C
--->D[Random Forest]
-
-D
--->E[Model Registry]
-
-E
--->F[FastAPI]
-
-F
--->G[Container Apps]
-
-G
--->H[API REST]
+    A[CSV Dataset] --> B[Azure Blob Storage]
+    B --> C[Azure Machine Learning Pipeline]
+    C --> D[Random Forest Training]
+    D --> E[Model Registry]
+    E --> F[FastAPI]
+    F --> G[Azure Container Apps]
+    G --> H[REST API]
+    G --> I[Monitoring]
+    I --> J[Drift Detection]
+    J -->|Retraining| C
 ```
 
-Dans un contexte de production, cette architecture pourrait être enrichie avec :
-
-- Azure Machine Learning ;
-- CI/CD GitHub Actions ;
-- Azure Container Registry ;
-- monitoring du modèle ;
-- détection du drift ;
-- réentraînement automatique.
+- **Azure Blob Storage** : stockage des données d'entraînement.
+- **Azure Machine Learning** : orchestration des pipelines d'entraînement et de validation.
+- **Model Registry** : versionnement des modèles validés avant mise en production.
+- **Azure Container Apps** : hébergement de l'API FastAPI.
+- **Monitoring & Drift Detection** : suivi des performances et détection de dérives pour déclencher un réentraînement.
 
 ---
 
-# Exécution
+# Exécution du projet
 
-Créer l'environnement :
+## Option recommandée — Docker
+
+Aucune dépendance Python locale nécessaire. Commandes : voir section *Docker* ci-dessus.
+
+## Option développement local
 
 ```bash
 python -m venv .venv
-```
-
-Activer l'environnement :
-
-```bash
 source .venv/bin/activate
-```
 
-Installer les dépendances :
-
-```bash
 pip install -r requirements.txt
-```
 
-Entraîner le modèle :
-
-```bash
 python -m src.training
-```
-
-Lancer l'API :
-
-```bash
+python -m pytest tests -v
 uvicorn src.api:app --reload
 ```
 
+API disponible sur `http://localhost:8000/docs` et `/redoc`.
+
+À partir du dépôt Git uniquement, un tiers peut reconstruire l'image, réentraîner le modèle, lancer les tests, démarrer l'API et reproduire les résultats obtenus.
+
 ---
 
-# Améliorations futures
+## Conclusion
 
-Les pistes d'amélioration identifiées sont :
+Le modèle Random Forest constitue le meilleur compromis pour prédire les ruptures à un horizon de 3 jours dans ce contexte métier : modélisation justifiée par l'EDA, pipeline reproductible, API documentée, tests automatisés, architecture industrialisable — en privilégiant la simplicité et la maintenabilité conformément aux contraintes du sujet (équipe cliente peu mature, délai de 48h).
 
-- optimisation des hyperparamètres ;
-- suivi du drift des données ;
-- MLflow pour le versionnement des modèles ;
-- Feature Store ;
-- explicabilité avec SHAP ;
-- monitoring Prometheus / Grafana ;
-- déploiement Kubernetes.
+---
+
+## Pistes d'amélioration
+
+Le temps imparti (48h) a conduit à privilégier une solution robuste et maintenable plutôt qu'une architecture exhaustive. En production, plusieurs évolutions seraient pertinentes :
+
+- **Model Registry** (MLflow ou Azure ML) pour le versionnement des modèles et le suivi des expériences ;
+- pipeline **CI/CD complet** (GitHub Actions + Azure) pour automatiser test/build/déploiement ;
+- **monitoring** des performances et détection de drift des données ;
+- **réentraînement automatique** déclenché par le monitoring ;
+- **explicabilité** des prédictions (SHAP) ;
+- **observabilité** (Prometheus / Grafana) ;
+- **Kubernetes** si les contraintes de montée en charge le justifient.
+
+Ces évolutions n'ont volontairement pas été implémentées afin de concentrer le temps disponible sur les exigences du sujet : qualité de l'EDA, robustesse du pipeline, packaging, tests et documentation.
