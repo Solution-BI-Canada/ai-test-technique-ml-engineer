@@ -172,3 +172,328 @@ Le test est noté sur 5 axes. Chaque axe est évalué indépendamment.
 > L'usage d'assistants IA (Copilot, Cursor, ChatGPT, Claude, etc.) est **autorisé** sur ce test, on ne va pas se cacher, c'est notre quotidien à tous aujourd'hui. Ce qui nous intéresse, ce n'est pas *si* tu en as utilisé, mais **comment** : qu'est-ce que tu lui as délégué, ce que tu as relu/corrigé, et ce que tu as choisi de faire toi-même.
 
 Bonne chance.
+
+
+---
+---
+
+---
+
+# Réponse au test technique
+
+## Présentation
+
+Cette proposition répond au test technique ML / MLOps Engineer de SBI.
+
+L'objectif n'était pas uniquement d'obtenir le meilleur score de prédiction, mais de construire une solution reproductible, robuste et facilement maintenable par une équipe ayant une faible maturité en Machine Learning.
+
+Le projet a été développé selon une démarche proche d'un projet industriel :
+
+1. Analyse exploratoire des données
+2. Détection et traitement des anomalies
+3. Feature Engineering
+4. Comparaison de plusieurs modèles
+5. Sélection du modèle le plus pertinent
+6. Industrialisation du pipeline
+7. Exposition du modèle via une API REST
+8. Containerisation Docker
+9. Tests unitaires
+
+---
+
+# Architecture du projet
+
+```
+.
+├── src/
+│   ├── api.py
+│   ├── config.py
+│   ├── evaluation.py
+│   ├── inference.py
+│   ├── preprocessing.py
+│   ├── schemas.py
+│   └── training.py
+│
+├── tests/
+│   ├── test_api.py
+│   └── test_preprocessing.py
+│
+├── notebooks/
+│   └── exploratory_data_analysis.ipynb
+│
+├── models/
+│   └── stockout_model.joblib
+│
+├── Dockerfile
+├── Makefile
+├── requirements.txt
+└── README.md
+```
+
+---
+
+# Décisions d'ingénierie
+
+Les principaux choix techniques sont les suivants :
+
+- séparation claire entre exploration, entraînement, inférence et API ;
+- pipeline de preprocessing réutilisable entre l'entraînement et l'inférence ;
+- suppression de toute fuite d'information (`stock_risk_score`) ;
+- split chronologique afin d'éviter toute fuite temporelle ;
+- modèle sérialisé avec Joblib ;
+- API REST développée avec FastAPI ;
+- containerisation avec Docker afin de garantir la reproductibilité ;
+- tests unitaires sur les composants critiques.
+
+---
+
+# Analyse exploratoire (EDA)
+
+L'analyse complète est disponible dans :
+
+```
+notebooks/exploratory_data_analysis.ipynb
+```
+
+Les principales anomalies identifiées sont :
+
+- valeurs manquantes ;
+- températures hors domaine physique ;
+- présence d'une variable présentant une fuite d'information (`stock_risk_score`) ;
+- variables catégorielles ;
+- déséquilibre des classes ;
+- distributions des variables continues ;
+- corrélations entre variables ;
+- analyse temporelle.
+
+Chaque anomalie identifiée est documentée et justifiée dans le notebook.
+
+---
+
+# Prétraitement
+
+Les traitements appliqués sont :
+
+- conversion de la colonne `date` ;
+- suppression de la variable présentant une fuite d'information ;
+- remplacement des températures invalides par des valeurs manquantes ;
+- imputation des valeurs manquantes ;
+- création de nouvelles variables métier ;
+- encodage des variables catégorielles.
+
+Les variables dérivées ajoutées sont notamment :
+
+- `sales_stock_gap`
+- `days_of_stock`
+
+---
+
+# Choix du modèle
+
+Plusieurs modèles ont été envisagés durant la phase d'expérimentation.
+
+Le modèle retenu est :
+
+**Random Forest Classifier**
+
+Ce choix est motivé par :
+
+- de très bonnes performances sur le jeu de données ;
+- une excellente robustesse ;
+- peu de prétraitement nécessaire ;
+- une maintenance simple ;
+- une bonne interprétabilité ;
+- une industrialisation facile.
+
+Dans le contexte présenté, la simplicité de maintenance a été privilégiée par rapport à un gain marginal de performance.
+
+---
+
+# Évaluation
+
+Le coût métier d'une rupture de stock étant supérieur au coût d'un faux positif, l'évaluation s'est concentrée sur des métriques adaptées aux jeux de données déséquilibrés :
+
+- Recall
+- Precision
+- F1-score
+- PR-AUC
+
+La PR-AUC est retenue comme métrique principale.
+
+Résultats obtenus :
+
+- Accuracy : **97 %**
+- Recall : **99 %**
+- Precision : **82 %**
+- PR-AUC : **0.995**
+
+---
+
+# API REST
+
+Deux endpoints sont exposés :
+
+## GET /health
+
+Retourne :
+
+```json
+{
+  "status": "ok"
+}
+```
+
+---
+
+## POST /predict
+
+Exemple de requête :
+
+```json
+{
+  "instances": [
+    {
+      "date": "2024-12-15",
+      "sku_id": "SKU_001",
+      "store_id": "STORE_1",
+      "sales_qty": 25,
+      "stock_level": 10,
+      "promotion_flag": 0,
+      "temperature": 5.0,
+      "day_of_week": 6
+    }
+  ]
+}
+```
+
+Exemple de réponse :
+
+```json
+{
+  "predictions": [
+    {
+      "stockout_prediction": 1,
+      "stockout_probability": 0.9949
+    }
+  ]
+}
+```
+
+---
+
+# Tests unitaires
+
+Les tests couvrent :
+
+- le pipeline de preprocessing ;
+- le feature engineering ;
+- l'API `/health` ;
+- l'API `/predict`.
+
+Exécution :
+
+```bash
+python -m pytest tests -v
+```
+
+---
+
+# Docker
+
+Construction de l'image :
+
+```bash
+docker build -t stockout-api:test .
+```
+
+Lancement :
+
+```bash
+docker run -p 8000:8000 stockout-api:test
+```
+
+---
+
+# Proposition d'architecture Cloud
+
+```mermaid
+flowchart LR
+
+A[CSV Dataset]
+-->B[Azure Blob Storage]
+
+B
+-->C[Pipeline d'entraînement]
+
+C
+-->D[Random Forest]
+
+D
+-->E[Model Registry]
+
+E
+-->F[FastAPI]
+
+F
+-->G[Container Apps]
+
+G
+-->H[API REST]
+```
+
+Dans un contexte de production, cette architecture pourrait être enrichie avec :
+
+- Azure Machine Learning ;
+- CI/CD GitHub Actions ;
+- Azure Container Registry ;
+- monitoring du modèle ;
+- détection du drift ;
+- réentraînement automatique.
+
+---
+
+# Exécution
+
+Créer l'environnement :
+
+```bash
+python -m venv .venv
+```
+
+Activer l'environnement :
+
+```bash
+source .venv/bin/activate
+```
+
+Installer les dépendances :
+
+```bash
+pip install -r requirements.txt
+```
+
+Entraîner le modèle :
+
+```bash
+python -m src.training
+```
+
+Lancer l'API :
+
+```bash
+uvicorn src.api:app --reload
+```
+
+---
+
+# Améliorations futures
+
+Les pistes d'amélioration identifiées sont :
+
+- optimisation des hyperparamètres ;
+- suivi du drift des données ;
+- MLflow pour le versionnement des modèles ;
+- Feature Store ;
+- explicabilité avec SHAP ;
+- monitoring Prometheus / Grafana ;
+- déploiement Kubernetes.

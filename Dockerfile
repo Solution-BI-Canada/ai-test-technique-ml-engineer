@@ -11,8 +11,12 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
 COPY src ./src
-COPY models ./models
 COPY stocks.csv ./stocks.csv
+
+# Entraîne le modèle pendant le build -- garantit que l'image contient
+# toujours un modèle à jour, cohérent avec le code src/ qu'elle embarque,
+# sans dépendre d'un artefact binaire versionné séparément.
+RUN python -m src.training
 
 EXPOSE 8000
 

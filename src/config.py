@@ -17,6 +17,7 @@ NUMERIC_FEATURES = [
     "day_of_week",
     "sales_stock_gap",
     "days_of_stock",
+    "demand_exceeds_stock",
 ]
 
 
@@ -31,4 +32,3 @@ DROPPED_COLUMNS = [
 
 RANDOM_STATE = 42
 TEST_SIZE_DAYS = 60
-DECISION_THRESHOLD = 0.45

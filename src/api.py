@@ -1,24 +1,28 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 from src.inference import load_model, predict_instances
 from src.schemas import PredictionRequest, PredictionResponse
 
-app = FastAPI(
-    title="Stockout Prediction API",
-    description="Predict stockout risk within the next 3 days.",
-    version="1.0.0",
-)
-
 model = None
 
 
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global model
     try:
         model = load_model()
     except FileNotFoundError:
         model = None
+    yield
+
+
+app = FastAPI(
+    title="Stockout Prediction API",
+    description="Predict stockout risk within the next 3 days.",
+    version="1.0.0",
+    lifespan=lifespan,
+)
 
 
 @app.get("/health")
@@ -34,7 +38,7 @@ def predict(request: PredictionRequest):
         raise HTTPException(status_code=503, detail="Model is not loaded.")
 
     predictions = predict_instances(
-        model=model,
+        model_bundle=model,
         instances=[item.model_dump() for item in request.instances],
     )
 
