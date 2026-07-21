@@ -1,3 +1,4 @@
+from configs.database import DB_CONFIG
 from pathlib import Path
 from typing import Any, Final
 import json
